@@ -4,13 +4,13 @@ A simple API for the IndexedDB.
 - **Promises:** async/await for all CRUD operations.
 - **Easy Queries:** Auto-selects the best index for performance.
 - **Auto-Migrations:** Automatically handles database upgrades and schema changes.
-- **Zero dependencies:** Single file, native performance.
+- **Zero dependencies:** Single file, native performance, gziped about 1kb.
 
 
 ```JS
 await db.users.insert();
 await db.products.findMany({query});
-await db.example.remove();
+await db.example.delete();
 ...
 ```
 

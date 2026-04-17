@@ -116,6 +116,19 @@ function buildApi(dbInst, stores) {
 		};
 	}
 	api.clear = () => Promise.all(stores.map(s => api[s.name].clear()));
+
+	api.log = async () => {
+
+		// 1. Fetch data from all stores. 
+		const results = await Promise.all(stores.map(s => runOp(dbInst, s.name, st => st.getAll())));
+
+		// 2. Build and log tree
+		const tree = {};
+		stores.forEach((s, i) => tree[s.name] = results[i]);
+		console.log(tree);
+		return tree;
+	};
+
 	return api;
 }
 
