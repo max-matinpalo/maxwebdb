@@ -1,0 +1,21 @@
+{
+	"name": "maxwebdb",
+	"version": "0.1",
+	"description": "New simple API for indexedDB",
+	"author": "Max Matinpalo",
+	"type": "module",
+	"license": "MIT",
+	"homepage": "https://github.com/max-matinpalo/maxwebdb#readme",
+	"exports": {
+		".": "./maxwebdb.js",
+		"./test": "./test.js"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/max-matinpalo/maxwebdb.git"
+	},
+	"bugs": {
+		"url": "https://github.com/max-matinpalo/maxwebdb/issues"
+	},
+	"main": "maxwebdb.js"
+}
