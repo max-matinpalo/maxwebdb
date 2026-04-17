@@ -1,6 +1,6 @@
 {
 	"name": "maxwebdb",
-	"version": "0.2.4",
+	"version": "0.3.1",
 	"description": "New simple API for indexedDB",
 	"author": "Max Matinpalo",
 	"type": "module",

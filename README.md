@@ -55,6 +55,13 @@ const insertedId = await DB.exampleStore.put({});
 - maps to `objectStore.add()`
 - If `id` is not provided, IndexedDB auto-generates it
 
+## Get
+Inserts or replaces a record.
+```JS
+const insertedId = await DB.exampleStore.get({});
+```
+- maps to `objectStore.get()`
+
 ## Delete
 ```JS
 await DB.exampleStore.delete(key)

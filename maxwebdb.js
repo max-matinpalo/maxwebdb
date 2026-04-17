@@ -109,10 +109,11 @@ function buildApi(dbInst, stores) {
 		api[s.name] = {
 			insert: (item) => runOp(dbInst, s.name, store => store.add(item)),
 			put: (item) => runOp(dbInst, s.name, store => store.put(item)),
+			get: (key) => runOp(dbInst, s.name, store => store.get(key)),
 			delete: (key) => runOp(dbInst, s.name, store => store.delete(key)),
 			clear: () => runOp(dbInst, s.name, store => store.clear()),
 			findOne: (q, cb) => executeQuery(dbInst, s, q, cb, true),
-			findMany: (q, cb) => executeQuery(dbInst, s, q, cb, false)
+			findMany: (q, cb) => executeQuery(dbInst, s, q, cb, false),
 		};
 	}
 	api.clear = () => Promise.all(stores.map(s => api[s.name].clear()));
