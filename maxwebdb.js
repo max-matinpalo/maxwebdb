@@ -117,6 +117,7 @@ function buildApi(dbInst, stores) {
 	}
 	api.clear = () => Promise.all(stores.map(s => api[s.name].clear()));
 
+	api.test = 213;
 	api.log = async () => {
 
 		// 1. Fetch data from all stores. 
