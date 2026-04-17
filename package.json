@@ -5,7 +5,7 @@
 	"author": "Max Matinpalo",
 	"type": "module",
 	"license": "MIT",
-	"homepage": "https://github.com/max-matinpalo/maxwebdb#readme",
+	"main": "maxwebdb.js",
 	"exports": {
 		".": "./maxwebdb.js",
 		"./test": "./test.js"
@@ -17,5 +17,27 @@
 	"bugs": {
 		"url": "https://github.com/max-matinpalo/maxwebdb/issues"
 	},
-	"main": "maxwebdb.js"
+	"homepage": "https://github.com/max-matinpalo/maxwebdb#readme",
+	"keywords": [
+		"indexeddb",
+		"indexdb",
+		"idb",
+		"browser-database",
+		"client-database",
+		"local-database",
+		"offline-storage",
+		"storage",
+		"database",
+		"db",
+		"crud",
+		"query",
+		"wrapper",
+		"web",
+		"frontend",
+		"javascript",
+		"async",
+		"zero-dependency",
+		"single-file",
+		"maxwebdb"
+	],
 }
