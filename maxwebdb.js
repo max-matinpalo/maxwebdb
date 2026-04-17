@@ -92,10 +92,9 @@ function openRequest(name, version, stores) {
 		const req = version ? indexedDB.open(name, version) : indexedDB.open(name);
 
 		req.onblocked = () => console.warn("Database blocked by another tab");
-		req.onupgradeneeded = (e) => applySchema(e.target.result, e.target.transaction, stores);
-		req.onsuccess = (e) => {
-			const dbInst = e.target.result;
-			// Automatically close if another tab requests an upgrade.
+		req.onupgradeneeded = () => applySchema(req.result, req.transaction, stores);
+		req.onsuccess = () => {
+			const dbInst = req.result;
 			dbInst.onversionchange = () => dbInst.close();
 			resolve(dbInst);
 		};
@@ -132,7 +131,7 @@ function runOp(dbInst, storeName, op) {
 
 		try {
 			const req = op(store);
-			req.onsuccess = (e) => res = e.target.result;
+			req.onsuccess = () => res = req.result;
 			req.onerror = () => reject(req.error);
 		} catch (err) {
 			reject(err);
@@ -180,9 +179,9 @@ function executeQuery(dbInst, storeCfg, queryObj, queryCb, isOne) {
 		const req = source.openCursor(range);
 		const items = [];
 		req.onerror = () => reject(req.error);
-		req.onsuccess = (e) => {
+		req.onsuccess = () => {
 			try {
-				const cursor = e.target.result;
+				const cursor = req.result;
 				if (!cursor) return resolve(isOne ? null : items);
 
 				const val = cursor.value;
