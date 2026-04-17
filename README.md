@@ -14,8 +14,6 @@ await db.example.remove();
 ...
 ```
 
-
-
 ## Quick start
 ``` bash
 npm install maxwebdb
@@ -75,37 +73,28 @@ await DB.exampleStore.clear()
 const item = await DB.exampleStore.findOne(queryObject, queryCb); 
 const items = await DB.exampleStore.findMany(queryObject, queryCb);
 ```
-
-**findOne** returns first record or null if not found
+**findOne** returns first record or null if not found  
 **findMany** return array
 
-### queryObject
+#### queryObject
 For strict equality checks. Auto uses indexes single field or compound indexed.
 ```js
 { category: "books", status: "active", authorId: 7 }
 ```
-### queryCallback
+#### queryCallback
 Optional callback for additional filtering.
 Callback is called which each item which passed the query object check.
 If callback returns true, item is included.
 
-### queryExecution
-Example query: { a, b, c }
+#### queryExecution
 1. Check for matching composite indexes whose fields are all present in queryObject
 	If multiple match, use the one with the most fields
-2. If no composite index matches, try find first single-field index
-	Example: a, b, or c
+2. If no composite index matches, try find first single-field index.
 3. If no index matches, perform a full scan
 4. Any remaining conditions are filtered in JavaScript.
 
 
-### KEYSTORES
-- For all stores: keypath: id, autoincrement: true, 
-Fixed, because indexed DB can not migrate safely changes of these values
-
-
-### Store definition
-
+### Store defintion
 ```js
 {
   name: "posts",
@@ -115,8 +104,8 @@ Fixed, because indexed DB can not migrate safely changes of these values
   ]
 }
 ```
-
-For all stores: {keypath: id, autoincrement: true}. These options are fixed, to make things simple and because indexed DB can not migrate safely changes of these values.
+For all stores: {keypath: id, autoincrement: true}. 
+These options are fixed, to make things simple and because indexed DB can not migrate safely changes of these values.
 
 #### Indexes
 - A string creates a single-field index.
@@ -125,22 +114,10 @@ For all stores: {keypath: id, autoincrement: true}. These options are fixed, to 
 - We could add option to pass options object for indexes
 
 ## Schema sync behavior
-
 On startup, `createDb()` compares the requested schema with the existing database and upgrades it when needed.
 
 It can:
-
 - Create missing stores
 - Delete stores that were removed from config
 - Create missing indexes
 - Delete indexes that were removed from config
-
-All stores use these fixed settings:
-
-- `keyPath: "id"`
-- `autoIncrement: true`
-
-
-
-## Setup
-Call **createDb()** once at application startup. It automatically handles database creation, store inspection, and schema upgrades within a single transaction.
