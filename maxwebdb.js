@@ -1,5 +1,5 @@
 // Main entry point: Normalizes config, inspects existing schema, and handles upgrades.
-export async function createDb(config = {}) {
+export async function setupDb(config = {}) {
 
 	// 1. Normalize configuration once for consistent reuse.
 	const name = config.name;
@@ -115,6 +115,7 @@ function buildApi(dbInst, stores) {
 			findMany: (q, cb) => executeQuery(dbInst, s, q, cb, false)
 		};
 	}
+	api.clear = () => Promise.all(stores.map(s => api[s.name].clear()));
 	return api;
 }
 

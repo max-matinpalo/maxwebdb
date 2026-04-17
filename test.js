@@ -1,6 +1,6 @@
 // @ts-nocheck
 
-import { createDb } from "./maxwebdb.js";
+import { setupDb } from "./maxwebdb.js";
 
 let isRunning = false;
 
@@ -10,7 +10,7 @@ export async function test() {
 
 	try {
 		// 1. Initialize test database
-		let db = await setupDb();
+		let db = await initTestDb();
 		await seedData(db);
 
 		// 2. Run query and operation tests
@@ -38,9 +38,9 @@ export async function test() {
 	}
 }
 
-async function setupDb() {
+async function initTestDb() {
 	// 1. Create DB with our specific indexes
-	const db = await createDb({
+	const db = await setupDb({
 		name: "TestDB",
 		stores: [{
 			name: "users",
@@ -195,7 +195,7 @@ async function testDataSurvivalDuringUpgrade() {
 	const dbName = "DataSurvivalDB";
 
 	// 1. Create V1 database and insert data
-	const dbV1 = await createDb({
+	const dbV1 = await setupDb({
 		name: dbName,
 		stores: [{ name: "items", indexes: ["category"] }]
 	});
@@ -205,7 +205,7 @@ async function testDataSurvivalDuringUpgrade() {
 
 	// 2. Request V2 database (adds new index and new store)
 	// V1 will auto-close due to the onversionchange handler
-	const dbV2 = await createDb({
+	const dbV2 = await setupDb({
 		name: dbName,
 		stores: [
 			{ name: "items", indexes: ["category", "val"] },
@@ -232,7 +232,7 @@ async function testDataSurvivalDuringUpgrade() {
 
 async function testSchemaUpgradeAndGlobalClear() {
 	// 1. Re-initialize DB with a new store and a new index on the old store
-	const dbV2 = await createDb({
+	const dbV2 = await setupDb({
 		name: "TestDB",
 		stores: [
 			{
@@ -271,7 +271,7 @@ async function testSchemaUpgradeAndGlobalClear() {
 
 async function testSchemaDeletion() {
 	// 1. Re-initialize DB and remove the 'settings' store and the 'age' index
-	const dbV3 = await createDb({
+	const dbV3 = await setupDb({
 		name: "TestDB",
 		stores: [{
 			name: "users",
@@ -306,13 +306,13 @@ async function testSchemaDeletion() {
 
 async function testConcurrentUpgrades() {
 	// 1. Open Connection A and keep it alive
-	const dbConnectionA = await createDb({
+	const dbConnectionA = await setupDb({
 		name: "ConcurrentTestDB",
 		stores: [{ name: "temp", indexes: [] }]
 	});
 
 	// 2. Request a schema upgrade via Connection B
-	const upgradePromise = createDb({
+	const upgradePromise = setupDb({
 		name: "ConcurrentTestDB",
 		stores: [{ name: "temp", indexes: [] }, { name: "temp2", indexes: [] }]
 	});

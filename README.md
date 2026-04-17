@@ -20,9 +20,9 @@ npm install maxwebdb
 ```
 
 ```js
-import { createDb } from "maxwebdb";
+import { setupDb } from "maxwebdb";
 
-const db = await createDb({
+const db = await setupDb({
   name: "db1",
   stores: [
     { name: "users", indexes: ["email", "role"] },
@@ -73,18 +73,22 @@ await DB.exampleStore.clear()
 const item = await DB.exampleStore.findOne(queryObject, queryCb); 
 const items = await DB.exampleStore.findMany(queryObject, queryCb);
 ```
-**findOne** returns first record or null if not found  
-**findMany** return array
 
 #### queryObject
-For strict equality checks. Auto uses indexes single field or compound indexed.
+For strict equality checks. Auto uses available indexes.
 ```js
 { category: "books", status: "active", authorId: 7 }
 ```
 #### queryCallback
 Optional callback for additional filtering.
-Callback is called which each item which passed the query object check.
-If callback returns true, item is included.
+Callback is called for each item which passed the queryObject check.
+If callback returns true, item is included. Example: 
+
+```js
+await DB.users.findMany(
+	{country: "finland"}, 
+	user => user.age > 24 && user.height < 166);
+```
 
 #### queryExecution
 1. Check for matching composite indexes whose fields are all present in queryObject
@@ -92,6 +96,9 @@ If callback returns true, item is included.
 2. If no composite index matches, try find first single-field index.
 3. If no index matches, perform a full scan
 4. Any remaining conditions are filtered in JavaScript.
+
+**findOne** returns first record or null if not found  
+**findMany** return array
 
 
 ### Store defintion
@@ -114,10 +121,9 @@ These options are fixed, to make things simple and because indexed DB can not mi
 - We could add option to pass options object for indexes
 
 ## Schema sync behavior
-On startup, `createDb()` compares the requested schema with the existing database and upgrades it when needed.
+On startup, `setupDb()` compares the requested schema with the existing database and upgrades it when needed.
 
-It can:
-- Create missing stores
-- Delete stores that were removed from config
-- Create missing indexes
-- Delete indexes that were removed from config
+- Creates missing stores
+- Deletes stores that were removed from config
+- Creates missing indexes
+- Deletes indexes that were removed from config

@@ -1,8 +1,8 @@
-import { createDb } from "./maxwebdb.js";
+import { setupDb } from "./maxwebdb.js";
 
 async function runDatabaseDemo() {
 	// 1. Config: Initialize database with stores and optional indexes.
-	const db = await createDb({
+	const db = await setupDb({
 		name: "AppStorage",
 		stores: [
 			{ name: "tasks", indexes: ["status", ["priority", "dueDate"]] }
