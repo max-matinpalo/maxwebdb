@@ -1,0 +1,20 @@
+
+TEST SCRIPT
+- improve test.js and add script to run it before publish to npm
+
+DB.LOG
+- log all except the data
+- array stores, item count and available index
+
+TS TYPES
+- also for the DB...
+
+EXAMPLE
+- dir with multiple examples and note them in the readme
+
+README
+- end is bad
+
+TO THINK
+- option to auto generate stores if not defined
+
