@@ -1,6 +1,6 @@
 {
 	"name": "maxwebdb",
-	"version": "0.3.1",
+	"version": "0.4.1",
 	"description": "New simple API for indexedDB",
 	"author": "Max Matinpalo",
 	"type": "module",
@@ -19,9 +19,13 @@
 	},
 	"homepage": "https://github.com/max-matinpalo/maxwebdb#readme",
 	"keywords": [
+		"maxwebdb",
 		"indexeddb",
 		"indexdb",
+		"localForage",
 		"idb",
+		"dexie",
+		"localStorage",
 		"browser-database",
 		"client-database",
 		"local-database",
@@ -29,15 +33,12 @@
 		"storage",
 		"database",
 		"db",
+		"pwa",
 		"crud",
 		"query",
-		"wrapper",
 		"web",
 		"frontend",
 		"javascript",
-		"async",
-		"zero-dependency",
-		"single-file",
-		"maxwebdb"
+		"zero-dependency"
 	]
 }

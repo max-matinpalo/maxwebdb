@@ -1,5 +1,5 @@
 <div align="center">
-	<img src="assets/maxwebdb-logo.png" alt="Logo" width="125" height="125">
+	<img src="assets/maxwebdb-logo.png" alt="Logo" width="200" height="200">
 </div>
 
 # maxwebdb
@@ -35,31 +35,32 @@ const config = {
   ]
 };
 
-// Call once at app start
 const db = await setupDb(config);
 
 ```
 
-Unlike with `idb` or `Dexie`, you don't have to update schemas manually.
-Just defines your desired `config` what stores and indexes are needed.
-`setupDb()` function compares the current database state to your config
-and handles schema upgrades and version changes automatically.
+Unlike with `idb` or `Dexie`, you don't have to update schemas manually. 
+
+
+Just define your desired `config` what stores and indexes are needed.  
+`setupDb()` compares the config with the current database schema and handles schema updates and version upgrades automatically.
+
 
 ### Insert
 ```JS
-const id = await db.users.insert({}); 
+const id = await DB.users.insert({}); 
 ```
 
 ### Put
+Insert, replace if already exists
 ```JS
-// Replace if exists else insert
-const id = await db.users.put({});
+const id = await DB.users.put({});
 ```
 
 ### Get
 Get one item by id
 ```JS
-const id = await db.users.get(id);
+const id = await DB.users.get(id);
 ```
 
 
@@ -72,17 +73,18 @@ await DB.exampleStore.clear()
 ## Queries
 
 ```JS
-const item = await DB.exampleStore.findOne(queryObject, queryCb); 
-const items = await DB.exampleStore.findMany(queryObject, queryCb);
+const item = await DB.example.findOne(QueryObject, cb); 
+const items = await DB.example.findMany(QueryObject, cb);
 ```
 
-#### queryObject
+### Query Object
 ```js
-{ category: "books", status: "active", authorId: 7 }
+{ category: "books", status: "active" }
 ```
-For strict equality checks. Automatically selects and uses available indexes.
+For strict equality checks.  
+Automatically selects and uses available indexes.
 
-#### queryCallback
+### Query Callbacks
 Optional callback for additional filtering.
 Callback is called for each item which passed the queryObject check.
 If callback returns true, item is included. Example: 
@@ -92,16 +94,17 @@ await DB.users.findMany(
 	{country: "finland"}, 
 	user => user.age > 24 && user.height < 166);
 ```
+<br>
 
-#### How it executes the queries
-1. Check for matching composite indexes whose fields are all present in queryObject
-	If multiple match, use the one with the most fields
+#### How it executes the queries behind the scenes
+1. Checks for matching composite indexes whose fields are all present in queryObject. If multiple match, use the one with the most fields
 2. If no composite index matches, try find first single-field index.
 3. If no index matches, perform a full scan
 4. Any remaining conditions are filtered in JavaScript.
 
 **findOne** returns first record or null if not found  
 **findMany** return array
+
 
 
 ### Store defintion
@@ -117,11 +120,11 @@ await DB.users.findMany(
 For all stores: {keypath: id, autoincrement: true}. 
 These options are fixed, to make things simple and because indexed DB can not migrate safely changes of these values.
 
-#### Indexes
+### Indexes
 - A string creates a single-field index.
 - An array creates a compound index.
-- Options fixed to the default of indexedDb {unique: false, multiEntry false}
-- We could add option to pass options object for indexes
+- Atm pptions fixed to the default of indexedDb {unique: false, multiEntry false}
+
 
 ## Schema sync behavior
 On startup, `setupDb()` compares the requested schema with the existing database and upgrades it when needed.
@@ -130,3 +133,16 @@ On startup, `setupDb()` compares the requested schema with the existing database
 - Deletes stores that were removed from config
 - Creates missing indexes
 - Deletes indexes that were removed from config
+
+## Hint
+Enable DB globally. So you can access it anywhere without importing.
+```js
+globalThis.DB = setupDb(config);
+````
+
+
+
+
+### Todo
+- Option to pass options for indexes
+- Add more examples
