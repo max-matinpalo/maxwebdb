@@ -3,20 +3,58 @@
 </div>
 
 # maxwebdb
-A simpler API for the IndexedDB.
+A simpler API for IndexedDB.
 
 - **Promises:** async/await for all CRUD operations.
 - **Easy Queries:** Auto-selects the best index for performance.
 - **Auto-Migrations:** Automatically handles database upgrades and schema changes.
-- **Zero dependencies:** Single file, native performance, gziped about 1kb.
-
+- **Zero dependencies:** Single file, native performance, gzipped about 1.6kb.
 
 ```JS
-await db.users.insert();
-await db.products.findMany({query});
-await db.example.delete();
+await DB.users.insert();
+await DB.products.findMany({query});
+await DB.example.delete();
 ...
 ```
+
+<details>
+  <summary>Full example</summary>
+
+  ```js
+  import { setupDb } from "maxwebdb";
+
+  const DB = await setupDb({
+    name: "db1",
+    stores: [
+      { name: "users", indexes: ["email", "role"] }
+    ]
+  });
+
+  const id = await DB.users.insert({
+    name: "peter",
+    email: "peter@example.com",
+    role: "admin"
+  });
+
+  const user = await DB.users.get(id);
+  console.log(user);
+  ```
+</details>
+
+
+
+## Comparison
+| Feature | maxwebdb | idb | localForage | Dexie |
+|---|---|---|---|---|
+| Primary Use Case | Simple local DB | Raw Wrapper | Key-value storage | Advanced local DB |
+| Size (min+gzip) |  ~1.6kb | ~1.1kb |  ~9kb | ~26kb |
+| Auto schema sync | ✅ | ❌ | ➖  | ❌ |
+| Zero manual migrations | ✅ | ❌ | ✅ | ❌ |
+| Object queries and filtering | ✅ | ❌ | ❌ | ✅ |
+| Auto index selection | ✅ | ❌ | ❌ | ❌ |
+
+
+
 
 ## Install
 ``` bash
@@ -35,7 +73,7 @@ const config = {
   ]
 };
 
-const db = await setupDb(config);
+const DB = await setupDb(config);
 
 ```
 
@@ -47,6 +85,7 @@ Just define your desired `config` what stores and indexes are needed.
 
 
 ### Insert
+If object has no `id`, auto generates it.
 ```JS
 const id = await DB.users.insert({}); 
 ```
@@ -103,11 +142,10 @@ await DB.users.findMany(
 4. Any remaining conditions are filtered in JavaScript.
 
 **findOne** returns first record or null if not found  
-**findMany** return array
+**findMany** returns an array
 
 
-
-### Store defintion
+### Store definition
 ```js
 {
   name: "posts",
@@ -123,7 +161,13 @@ These options are fixed, to make things simple and because indexed DB can not mi
 ### Indexes
 - A string creates a single-field index.
 - An array creates a compound index.
-- Atm pptions fixed to the default of indexedDb {unique: false, multiEntry false}
+- Options fixed to the default of IndexedDb {unique: false, multiEntry false}
+
+
+
+
+
+
 
 
 ## Schema sync behavior
@@ -138,11 +182,6 @@ On startup, `setupDb()` compares the requested schema with the existing database
 Enable DB globally. So you can access it anywhere without importing.
 ```js
 globalThis.DB = setupDb(config);
-````
+```
 
 
-
-
-### Todo
-- Option to pass options for indexes
-- Add more examples
