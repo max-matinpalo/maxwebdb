@@ -110,6 +110,7 @@ function buildApi(dbInst, stores) {
 			insert: (item) => runOp(dbInst, s.name, store => store.add(item)),
 			put: (item) => runOp(dbInst, s.name, store => store.put(item)),
 			get: (key) => runOp(dbInst, s.name, store => store.get(key)),
+			getAll: () => runOp(dbInst, s.name, store => store.getAll()),
 			delete: (key) => runOp(dbInst, s.name, store => store.delete(key)),
 			clear: () => runOp(dbInst, s.name, store => store.clear()),
 			findOne: (q, cb) => executeQuery(dbInst, s, q, cb, true),
@@ -118,7 +119,6 @@ function buildApi(dbInst, stores) {
 	}
 	api.clear = () => Promise.all(stores.map(s => api[s.name].clear()));
 
-	api.test = 213;
 	api.log = async () => {
 
 		// 1. Fetch data from all stores. 

@@ -47,7 +47,7 @@ await DB.example.delete();
 | Feature | maxwebdb | idb | localForage | Dexie |
 |---|---|---|---|---|
 | Primary Use Case | Simple local DB | Raw Wrapper | Key-value storage | Advanced local DB |
-| Size (min+gzip) |  ~1.6kb | ~1.1kb |  ~9kb | ~26kb |
+| Size (min+gzip) |  ~1.5kb | ~1.1kb |  ~9kb | ~26kb |
 | Auto schema sync | ✅ | ❌ | ➖  | ❌ |
 | Zero manual migrations | ✅ | ❌ | ✅ | ❌ |
 | Object queries and filtering | ✅ | ❌ | ❌ | ✅ |
@@ -99,6 +99,7 @@ const id = await DB.users.put({});
 Get one item by id
 ```JS
 const id = await DB.users.get(id);
+const ids = await DB.users.getAll();
 ```
 
 ### Delete and clear
