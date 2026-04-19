@@ -7,7 +7,7 @@ A simpler API for IndexedDB.
 
 - **Promises:** async/await for all CRUD operations.
 - **Easy Queries:** Auto-selects the best index for performance.
-- **Auto-Migrations:** Automatically handles database upgrades and schema changes.
+- **Auto schema sync:** Automatically handles schema changes and database upgrades.
 - **Zero dependencies:** Single file, native performance, gzipped about 1.6kb.
 
 ```JS
@@ -52,8 +52,7 @@ await DB.example.delete();
 | Zero manual migrations | ✅ | ❌ | ✅ | ❌ |
 | Object queries and filtering | ✅ | ❌ | ❌ | ✅ |
 | Auto index selection | ✅ | ❌ | ❌ | ❌ |
-
-
+| Observable / Live queries | ❌ | ❌ | ❌ | ✅ |
 
 
 ## Install
@@ -85,7 +84,7 @@ Just define your desired `config` what stores and indexes are needed.
 
 
 ### Insert
-If object has no `id`, auto generates it.
+If the object has no `id`, auto generates.
 ```JS
 const id = await DB.users.insert({}); 
 ```
@@ -102,7 +101,6 @@ Get one item by id
 const id = await DB.users.get(id);
 ```
 
-
 ### Delete and clear
 ```JS
 await DB.exampleStore.delete(key)
@@ -110,7 +108,6 @@ await DB.exampleStore.clear()
 ```
 
 ## Queries
-
 ```JS
 const item = await DB.example.findOne(QueryObject, cb); 
 const items = await DB.example.findMany(QueryObject, cb);
@@ -181,7 +178,7 @@ On startup, `setupDb()` compares the requested schema with the existing database
 ## Hint
 Enable DB globally. So you can access it anywhere without importing.
 ```js
-globalThis.DB = setupDb(config);
+globalThis.DB = await setupDb(config);
 ```
 
 
