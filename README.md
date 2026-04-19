@@ -1,5 +1,9 @@
-# MAXWEBDB
-A simple API for the IndexedDB.
+<div align="center">
+	<img src="assets/maxwebdb-logo.png" alt="Logo" width="125" height="125">
+</div>
+
+# maxwebdb
+A simpler API for the IndexedDB.
 
 - **Promises:** async/await for all CRUD operations.
 - **Easy Queries:** Auto-selects the best index for performance.
@@ -14,67 +18,58 @@ await db.example.delete();
 ...
 ```
 
-## Quick start
+## Install
 ``` bash
 npm install maxwebdb
 ```
 
+## Setup
 ```js
 import { setupDb } from "maxwebdb";
 
-const db = await setupDb({
+const config = {
   name: "db1",
   stores: [
     { name: "users", indexes: ["email", "role"] },
     { name: "products", indexes: ["category", ["category", "status"]] }
   ]
-});
+};
 
-const id = await db.users.insert({
-  name: "peter",
-  email: "peter@example.com",
-  role: "admin"
-});
+// Call once at app start
+const db = await setupDb(config);
 
-const user = await db.users.findOne({ email: "peter@example.com" });
 ```
 
+Unlike with `idb` or `Dexie`, you don't have to update schemas manually.
+Just defines your desired `config` what stores and indexes are needed.
+`setupDb()` function compares the current database state to your config
+and handles schema upgrades and version changes automatically.
 
-## Insert
+### Insert
 ```JS
-const insertedId = await DB.exampleStore.insert({});
+const id = await db.users.insert({}); 
 ```
-- maps to IndexedDb objectStore.add()
-- if id in object not defined, it generates one
 
-## Put
-Inserts or replaces a record.
+### Put
 ```JS
-const insertedId = await DB.exampleStore.put({});
+// Replace if exists else insert
+const id = await db.users.put({});
 ```
-- maps to `objectStore.add()`
-- If `id` is not provided, IndexedDB auto-generates it
 
-## Get
-Inserts or replaces a record.
+### Get
+Get one item by id
 ```JS
-const insertedId = await DB.exampleStore.get({});
+const id = await db.users.get(id);
 ```
-- maps to `objectStore.get()`
 
-## Delete
+
+### Delete and clear
 ```JS
 await DB.exampleStore.delete(key)
-```
-- Maps to `objectStore.delete()`
-
-## Clear
-```JS
 await DB.exampleStore.clear()
 ```
-- maps to IndexedDB objectStore.clear()
 
-## Find
+## Queries
 
 ```JS
 const item = await DB.exampleStore.findOne(queryObject, queryCb); 
@@ -82,10 +77,11 @@ const items = await DB.exampleStore.findMany(queryObject, queryCb);
 ```
 
 #### queryObject
-For strict equality checks. Auto uses available indexes.
 ```js
 { category: "books", status: "active", authorId: 7 }
 ```
+For strict equality checks. Automatically selects and uses available indexes.
+
 #### queryCallback
 Optional callback for additional filtering.
 Callback is called for each item which passed the queryObject check.
@@ -97,7 +93,7 @@ await DB.users.findMany(
 	user => user.age > 24 && user.height < 166);
 ```
 
-#### queryExecution
+#### How it executes the queries
 1. Check for matching composite indexes whose fields are all present in queryObject
 	If multiple match, use the one with the most fields
 2. If no composite index matches, try find first single-field index.
