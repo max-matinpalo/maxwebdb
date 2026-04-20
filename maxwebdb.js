@@ -107,12 +107,14 @@ function buildApi(dbInst, stores) {
 	const api = {};
 	for (const s of stores) {
 		api[s.name] = {
-			insert: (item) => runOp(dbInst, s.name, store => store.add(item)),
-			put: (item) => runOp(dbInst, s.name, store => store.put(item)),
-			get: (key) => runOp(dbInst, s.name, store => store.get(key)),
-			getAll: () => runOp(dbInst, s.name, store => store.getAll()),
-			delete: (key) => runOp(dbInst, s.name, store => store.delete(key)),
-			clear: () => runOp(dbInst, s.name, store => store.clear()),
+			insert: (d) => Array.isArray(d) ?
+				runBatch(dbInst, s.name, "add", d) : runOp(dbInst, s.name, "readwrite", st => st.add(d)),
+			put: (d) => Array.isArray(d) ?
+				runBatch(dbInst, s.name, "put", d) : runOp(dbInst, s.name, "readwrite", st => st.put(d)),
+			get: (key) => runOp(dbInst, s.name, "readonly", st => st.get(key)),
+			getAll: () => runOp(dbInst, s.name, "readonly", st => st.getAll()),
+			delete: (key) => runOp(dbInst, s.name, "readwrite", st => st.delete(key)),
+			clear: () => runOp(dbInst, s.name, "readwrite", st => st.clear()),
 			findOne: (q, cb) => executeQuery(dbInst, s, q, cb, true),
 			findMany: (q, cb) => executeQuery(dbInst, s, q, cb, false),
 		};
@@ -120,11 +122,7 @@ function buildApi(dbInst, stores) {
 	api.clear = () => Promise.all(stores.map(s => api[s.name].clear()));
 
 	api.log = async () => {
-
-		// 1. Fetch data from all stores. 
-		const results = await Promise.all(stores.map(s => runOp(dbInst, s.name, st => st.getAll())));
-
-		// 2. Build and log tree
+		const results = await Promise.all(stores.map(s => runOp(dbInst, s.name, "readonly", st => st.getAll())));
 		const tree = {};
 		stores.forEach((s, i) => tree[s.name] = results[i]);
 		console.log(tree);
@@ -134,10 +132,10 @@ function buildApi(dbInst, stores) {
 	return api;
 }
 
-// Helper for write operations. Resolves on tx.oncomplete for data persistence.
-function runOp(dbInst, storeName, op) {
+// Helper for single operations.
+function runOp(dbInst, storeName, mode, op) {
 	return new Promise((resolve, reject) => {
-		const tx = dbInst.transaction(storeName, "readwrite");
+		const tx = dbInst.transaction(storeName, mode);
 		const store = tx.objectStore(storeName);
 		let res;
 
@@ -147,15 +145,40 @@ function runOp(dbInst, storeName, op) {
 
 		try {
 			const req = op(store);
-			req.onsuccess = () => res = req.result;
-			req.onerror = () => reject(req.error);
+			if (req) {
+				req.onsuccess = () => res = req.result;
+				req.onerror = () => tx.abort();
+			}
 		} catch (err) {
-			reject(err);
+			try { tx.abort(); } catch (e) { }
 		}
 	});
 }
 
-// Handles complex querying: Index selection -> cursor scan -> JS filtering.
+// Helper for bulk writes. Handles arrays in a single readwrite transaction.
+function runBatch(dbInst, storeName, method, items) {
+	return new Promise((resolve, reject) => {
+		const tx = dbInst.transaction(storeName, "readwrite");
+		const store = tx.objectStore(storeName);
+		const results = [];
+
+		tx.oncomplete = () => resolve(results);
+		tx.onabort = () => reject(tx.error || new Error("Batch aborted"));
+		tx.onerror = () => reject(tx.error || new Error("Batch failed"));
+
+		try {
+			for (const item of items) {
+				const req = store[method](item);
+				req.onsuccess = () => results.push(req.result);
+				req.onerror = () => tx.abort();
+			}
+		} catch (err) {
+			try { tx.abort(); } catch (e) { }
+		}
+	});
+}
+
+// Handles complex querying using readonly transactions.
 function executeQuery(dbInst, storeCfg, queryObj, queryCb, isOne) {
 	return new Promise((resolve, reject) => {
 
@@ -165,7 +188,7 @@ function executeQuery(dbInst, storeCfg, queryObj, queryCb, isOne) {
 		const qObj = queryObj || {};
 		const qKeys = Object.keys(qObj);
 
-		// 2. Select index: Full composite match first, then single field index.
+		// 2. Select index.
 		let best = storeCfg.indexes
 			.filter(idx => idx.keyPath.length > 1 && idx.keyPath.every(k => qKeys.includes(k)))
 			.sort((a, b) => b.keyPath.length - a.keyPath.length)[0];
@@ -173,7 +196,7 @@ function executeQuery(dbInst, storeCfg, queryObj, queryCb, isOne) {
 		const isSingle = idx => idx.keyPath.length === 1 && qKeys.includes(idx.keyPath[0]);
 		if (!best) best = storeCfg.indexes.find(isSingle);
 
-		// 3. Setup source. Fallback to full scan if IDBKeyRange throws.
+		// 3. Setup source.
 		let source = store;
 		let range = null;
 		if (best) {
@@ -188,30 +211,36 @@ function executeQuery(dbInst, storeCfg, queryObj, queryCb, isOne) {
 			}
 		}
 
+		// 4. Transaction-level error handling.
 		tx.onabort = () => reject(tx.error || new Error("Query aborted"));
 		tx.onerror = () => reject(tx.error || new Error("Query failed"));
 
-		// 4. Cursor iteration with internal try/catch for safe queryCallback execution.
-		const req = source.openCursor(range);
-		const items = [];
-		req.onerror = () => reject(req.error);
-		req.onsuccess = () => {
-			try {
-				const cursor = req.result;
-				if (!cursor) return resolve(isOne ? null : items);
+		// 5. Cursor iteration with internal try/catch for safe queryCallback execution.
+		try {
+			const req = source.openCursor(range);
+			const items = [];
 
-				const val = cursor.value;
-				let match = qKeys.every(k => val[k] === qObj[k]);
-				if (match && queryCb) match = queryCb(val);
+			req.onerror = () => tx.abort();
+			req.onsuccess = () => {
+				try {
+					const cursor = req.result;
+					if (!cursor) return resolve(isOne ? null : items);
 
-				if (match) {
-					if (isOne) return resolve(val);
-					items.push(val);
+					const val = cursor.value;
+					let match = qKeys.every(k => val[k] === qObj[k]);
+					if (match && queryCb) match = queryCb(val);
+
+					if (match) {
+						if (isOne) return resolve(val);
+						items.push(val);
+					}
+					cursor.continue();
+				} catch (err) {
+					try { tx.abort(); } catch (e) { }
 				}
-				cursor.continue();
-			} catch (err) {
-				reject(err);
-			}
-		};
+			};
+		} catch (err) {
+			try { tx.abort(); } catch (e) { }
+		}
 	});
 }

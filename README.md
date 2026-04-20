@@ -6,7 +6,7 @@
 A simpler API for IndexedDB.
 
 - **Promises:** async/await for all CRUD operations.
-- **Easy Queries:** Auto-selects the best index for performance.
+- **Easy Fast Queries:** Auto-selects best index for performance.
 - **Auto schema sync:** Automatically handles schema changes and database upgrades.
 - **Zero dependencies:** Single file, native performance, gzipped about 1.6kb.
 
@@ -84,13 +84,19 @@ Just define your desired `config` what stores and indexes are needed.
 
 
 ### Insert
-If the object has no `id`, auto generates.
+If the object has no `id`, auto generates.  
 ```JS
-const id = await DB.users.insert({}); 
+// Single: returns inserted id
+const id = await DB.users.insert({ name: "Alex" });
+
+// Bulk: returns array of ids [id1, id2...]
+const ids = await DB.users.insert([{ name: "A" }, { name: "B" }]);
+
 ```
 
 ### Put
-Insert, replace if already exists
+Insert, replace if already exists  
+For bulk request - pass array of objects.
 ```JS
 const id = await DB.users.put({});
 ```
