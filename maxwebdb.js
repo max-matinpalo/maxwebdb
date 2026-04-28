@@ -111,9 +111,9 @@ function buildApi(dbInst, stores) {
 				runBatch(dbInst, s.name, "add", d) : runOp(dbInst, s.name, "readwrite", st => st.add(d)),
 			put: (d) => Array.isArray(d) ?
 				runBatch(dbInst, s.name, "put", d) : runOp(dbInst, s.name, "readwrite", st => st.put(d)),
-			get: (key) => runOp(dbInst, s.name, "readonly", st => st.get(key)),
+			get: (key) => key == null ? Promise.resolve(null) : runOp(dbInst, s.name, "readonly", st => st.get(key)),
 			getAll: () => runOp(dbInst, s.name, "readonly", st => st.getAll()),
-			delete: (key) => runOp(dbInst, s.name, "readwrite", st => st.delete(key)),
+			delete: (key) => key == null ? Promise.resolve() : runOp(dbInst, s.name, "readwrite", st => st.delete(key)),
 			clear: () => runOp(dbInst, s.name, "readwrite", st => st.clear()),
 			findOne: (q, cb) => executeQuery(dbInst, s, q, cb, true),
 			findMany: (q, cb) => executeQuery(dbInst, s, q, cb, false),
